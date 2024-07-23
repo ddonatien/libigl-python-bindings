@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16.0)
 project(pyigl)
 
+find_package(OpenMP)
 if (NOT DEFINED PYLIBIGL_EXTERNAL)
   set(PYLIBIGL_EXTERNAL ${CMAKE_CURRENT_SOURCE_DIR}/external)
 endif()
@@ -38,6 +39,11 @@ npe_add_module(pyigl
   BINDING_SOURCES
   ${PYIGL_SOURCES})
 target_link_libraries(pyigl PRIVATE igl::core)
+
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(pyigl PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
 target_include_directories(pyigl PRIVATE "src/include")
 set_target_properties(pyigl PROPERTIES 
   LIBRARY_OUTPUT_DIRECTORY "${PYIGL_OUTPUT_DIRECTORY}"
