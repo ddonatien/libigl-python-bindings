@@ -93,84 +93,82 @@ npe_begin_code()
     Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1> I;
     EigenDenseLike<npe_Matrix_v> C;
     EigenDenseLike<npe_Matrix_v> N;
-    std::vector<EigenDenseLike<npe_Matrix_p>> Sv;
-    std::vector<Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1>> Iv;
-    std::vector<EigenDenseLike<npe_Matrix_v>> Cv;
-    std::vector<EigenDenseLike<npe_Matrix_v>> Nv;
-    for (int j=0; j<11; j++){
-	    EigenDenseLike<npe_Matrix_p> _S;
-	    Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1> _I;
-	    EigenDenseLike<npe_Matrix_v> _C;
-	    EigenDenseLike<npe_Matrix_v> _N;
-	    Sv.push_back(_S);
-	    Iv.push_back(_I);
-	    Cv.push_back(_C);
-	    Nv.push_back(_N);
-    }
+    // std::vector<EigenDenseLike<npe_Matrix_p>> Sv;
+    // std::vector<Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1>> Iv;
+    // std::vector<EigenDenseLike<npe_Matrix_v>> Cv;
+    // std::vector<EigenDenseLike<npe_Matrix_v>> Nv;
+    // for (int j=0; j<11; j++){
+    //         EigenDenseLike<npe_Matrix_p> _S;
+    //         Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1> _I;
+    //         EigenDenseLike<npe_Matrix_v> _C;
+    //         EigenDenseLike<npe_Matrix_v> _N;
+    //         Sv.push_back(_S);
+    //         Iv.push_back(_I);
+    //         Cv.push_back(_C);
+    //         Nv.push_back(_N);
+    // }
+    S.resize(P.rows(), 1);
+    I.resize(P.rows(), 1);
+    C.resize(P.rows(), 3);
+    N.resize(P.rows(), 3);
 
     if (return_normals) {
-	int s = static_cast<int>(P.rows()/10);
+	int s = static_cast<int>(P.rows()/2);
 
-	#pragma omp parallel for num_threads(10)
-	for (int j=0; j<11; j++) {
-	  if (j < 10) {
-       	    igl::signed_distance(P(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all), V, F, igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL, Sv[j], Iv[j], Cv[j], Nv[j]);
+	#pragma omp parallel for num_threads(3)
+	for (int j=0; j<3; j++) {
+	  if (j < 2) {
+            EigenDenseLike<npe_Matrix_p> _S;
+            Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1> _I;
+            EigenDenseLike<npe_Matrix_v> _C;
+            EigenDenseLike<npe_Matrix_v> _N;
+       	    igl::signed_distance(P(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all), V, F, igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL, _S, _I, _C, _N); 
+            S(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = _S;
+            I(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = _I;
+            C(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = _C;
+            N(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = _N;
 	  }
 	  else {
-       	    igl::signed_distance(P(Eigen::seq(s*j, Eigen::last), Eigen::all), V, F, igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL, Sv[j], Iv[j], Cv[j], Nv[j]);
-	  }
-	}
-	S.resize(P.rows(), 1);
-	I.resize(P.rows(), 1);
-	C.resize(P.rows(), 3);
-	N.resize(P.rows(), 3);
-        #pragma omp critical
-	for (int j=0; j<11; j++) {
-	  if (j < 10) {
-            S(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = Sv[j];
-            I(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = Iv[j];
-            C(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = Cv[j];
-            N(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = Nv[j];;
-	  }
-	  else {
-            S(Eigen::seq(s*j, Eigen::last), Eigen::all) = Sv[j];
-            I(Eigen::seq(s*j, Eigen::last), Eigen::all) = Iv[j];
-            C(Eigen::seq(s*j, Eigen::last), Eigen::all) = Cv[j];
-            N(Eigen::seq(s*j, Eigen::last), Eigen::all) = Nv[j];
+            EigenDenseLike<npe_Matrix_p> _S;
+            Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1> _I;
+            EigenDenseLike<npe_Matrix_v> _C;
+            EigenDenseLike<npe_Matrix_v> _N;
+       	    igl::signed_distance(P(Eigen::seq(s*j, Eigen::last), Eigen::all), V, F, igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL, _S, _I, _C, _N);
+            S(Eigen::seq(s*j, Eigen::last), Eigen::all) = _S;
+            I(Eigen::seq(s*j, Eigen::last), Eigen::all) = _I;
+            C(Eigen::seq(s*j, Eigen::last), Eigen::all) = _C;
+            N(Eigen::seq(s*j, Eigen::last), Eigen::all) = _N;
 	  }
 	}
         // igl::signed_distance(P, V, F, igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL, S, I, C, N);
         return pybind11::make_tuple(npe::move(S), npe::move(I), npe::move(C), npe::move(N));
     } else {
         // N is only populated when sign_type == SIGNED_DISTANCE_TYPE_PSEUDONORMAL
-	int s = static_cast<int>(P.rows()/10);
+	int s = static_cast<int>(P.rows()/2);
 
-	#pragma omp parallel for num_threads(10)
-	for (int j=0; j<10; j++) {
-	  if (j < 9) {
-       	    igl::signed_distance(P(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all), V, F, static_cast<igl::SignedDistanceType>(sign_type), Sv[j], Iv[j], Cv[j], Nv[j]);
+	#pragma omp parallel for num_threads(3)
+	for (int j=0; j<3; j++) {
+	  if (j < 2) {
+            EigenDenseLike<npe_Matrix_p> _S;
+            Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1> _I;
+            EigenDenseLike<npe_Matrix_v> _C;
+            EigenDenseLike<npe_Matrix_v> _N;
+       	    igl::signed_distance(P(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all), V, F, static_cast<igl::SignedDistanceType>(sign_type), _S, _I, _C, _N);
+            S(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = _S;
+            I(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = _I;
+            C(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = _C;
+            N(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = _N;
 	  }
 	  else {
-       	    igl::signed_distance(P(Eigen::seq(s*j, Eigen::last), Eigen::all), V, F, static_cast<igl::SignedDistanceType>(sign_type), Sv[j], Iv[j], Cv[j], Nv[j]);
-	  }
-	}
-	S.resize(P.rows(), 1);
-	I.resize(P.rows(), 1);
-	C.resize(P.rows(), 3);
-	N.resize(P.rows(), 3);
-        #pragma omp critical
-	for (int j=0; j<10; j++) {
-	  if (j < 9) {
-            S(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = Sv[j];
-            I(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = Iv[j];
-            C(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = Cv[j];
-            N(Eigen::seq(s*j, s*(j+1) - 1), Eigen::all) = Nv[j];;
-	  }
-	  else {
-            S(Eigen::seq(s*j, Eigen::last), Eigen::all) = Sv[j];
-            I(Eigen::seq(s*j, Eigen::last), Eigen::all) = Iv[j];
-            C(Eigen::seq(s*j, Eigen::last), Eigen::all) = Cv[j];
-            N(Eigen::seq(s*j, Eigen::last), Eigen::all) = Nv[j];
+            EigenDenseLike<npe_Matrix_p> _S;
+            Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1> _I;
+            EigenDenseLike<npe_Matrix_v> _C;
+            EigenDenseLike<npe_Matrix_v> _N;
+       	    igl::signed_distance(P(Eigen::seq(s*j, Eigen::last), Eigen::all), V, F, static_cast<igl::SignedDistanceType>(sign_type), _S, _I, _C, _N);
+            S(Eigen::seq(s*j, Eigen::last), Eigen::all) = _S;
+            I(Eigen::seq(s*j, Eigen::last), Eigen::all) = _I;
+            C(Eigen::seq(s*j, Eigen::last), Eigen::all) = _C;
+            N(Eigen::seq(s*j, Eigen::last), Eigen::all) = _N;
 	  }
 	}
         // igl::signed_distance(P, V, F, static_cast<igl::SignedDistanceType>(sign_type), S, I, C, N);
