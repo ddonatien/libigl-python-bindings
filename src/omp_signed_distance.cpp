@@ -93,20 +93,6 @@ npe_begin_code()
     Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1> I;
     EigenDenseLike<npe_Matrix_v> C;
     EigenDenseLike<npe_Matrix_v> N;
-    // std::vector<EigenDenseLike<npe_Matrix_p>> Sv;
-    // std::vector<Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1>> Iv;
-    // std::vector<EigenDenseLike<npe_Matrix_v>> Cv;
-    // std::vector<EigenDenseLike<npe_Matrix_v>> Nv;
-    // for (int j=0; j<11; j++){
-    //         EigenDenseLike<npe_Matrix_p> _S;
-    //         Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1> _I;
-    //         EigenDenseLike<npe_Matrix_v> _C;
-    //         EigenDenseLike<npe_Matrix_v> _N;
-    //         Sv.push_back(_S);
-    //         Iv.push_back(_I);
-    //         Cv.push_back(_C);
-    //         Nv.push_back(_N);
-    // }
     S.resize(P.rows(), 1);
     I.resize(P.rows(), 1);
     C.resize(P.rows(), 3);
