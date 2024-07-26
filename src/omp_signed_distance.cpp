@@ -113,11 +113,11 @@ npe_begin_code()
     N.resize(P.rows(), 3);
 
     if (return_normals) {
-	int s = static_cast<int>(P.rows()/2);
+	int s = static_cast<int>(P.rows()/5);
 
-	#pragma omp parallel for num_threads(3)
-	for (int j=0; j<3; j++) {
-	  if (j < 2) {
+	#pragma omp parallel for num_threads(6)
+	for (int j=0; j<6; j++) {
+	  if (j < 5) {
             EigenDenseLike<npe_Matrix_p> _S;
             Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1> _I;
             EigenDenseLike<npe_Matrix_v> _C;
@@ -144,11 +144,11 @@ npe_begin_code()
         return pybind11::make_tuple(npe::move(S), npe::move(I), npe::move(C), npe::move(N));
     } else {
         // N is only populated when sign_type == SIGNED_DISTANCE_TYPE_PSEUDONORMAL
-	int s = static_cast<int>(P.rows()/2);
+	int s = static_cast<int>(P.rows()/5);
 
-	#pragma omp parallel for num_threads(3)
-	for (int j=0; j<3; j++) {
-	  if (j < 2) {
+	#pragma omp parallel for num_threads(6)
+	for (int j=0; j<6; j++) {
+	  if (j < 5) {
             EigenDenseLike<npe_Matrix_p> _S;
             Eigen::Matrix<npe_Scalar_f, Eigen::Dynamic, 1> _I;
             EigenDenseLike<npe_Matrix_v> _C;
